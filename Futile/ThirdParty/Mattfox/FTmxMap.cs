@@ -219,7 +219,7 @@ public class FTmxMap : FContainer {
 		// get text for csv data
 		string csvText = csvData.value;
 		string firstFrame = csvText.Substring( 0, csvText.IndexOf(',') );
-		int firstID = int.Parse(firstFrame);
+        int firstID = RemoveFrameFlags(uint.Parse(firstFrame));
 		
 		// find name of tileset being used, assumes all tiles are from the same tileset
 		string baseName = this.getTilesetNameForID(firstID);
