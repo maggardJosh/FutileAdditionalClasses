@@ -58,7 +58,7 @@ public class FAnimatedSprite : FSprite {
 					}
 					
 					// send Signal if it exists
-					_currentAnim.checkFinished();
+					//_currentAnim.checkFinished();
 				}
 				
 				element = Futile.atlasManager.GetElementWithName(_baseName+"_"+_currentAnim.frames[_currentFrame]);
