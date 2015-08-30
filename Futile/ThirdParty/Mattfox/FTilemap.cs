@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class FTilemap : FContainer
 {
+
+
     public bool repeatX = false;
     public bool repeatY = false;
 
@@ -21,7 +23,7 @@ public class FTilemap : FContainer
     protected FShader _shader;
 
     // list of all tiles
-    protected int[] _tileArray;
+    protected uint[] _tileArray;
     protected List<FSprite> _tiles;
 
     // size of clipping
@@ -154,8 +156,36 @@ public class FTilemap : FContainer
                     int frame = tileX + tileY * _tilesWide;
                     if (frame >= 0 && frame < _tileArray.GetLength(0))
                     {
-                        int frameNum = _tileArray[frame];
-                        tile.element = Futile.atlasManager.GetElementWithName(_baseName + "_" + frameNum);
+                        uint frameNum = _tileArray[frame];
+                        bool flipped_horizontally = FTmxMap.FlippedHorizontally(frameNum);
+                        bool flipped_vertically = FTmxMap.FlippedVertically(frameNum);
+                        bool flipped_diagonally = FTmxMap.FlippedDiagonally(frameNum);
+
+                        tile.element = Futile.atlasManager.GetElementWithName(_baseName + "_" + FTmxMap.RemoveFrameFlags(frameNum));
+
+                        tile.rotation = flipped_diagonally ? -90 : 0;
+                        if (flipped_diagonally)
+                        {
+
+                            tile.scaleY = flipped_vertically ? 1 : -1;
+                            tile.scaleX = flipped_horizontally ? -1 : 1;
+                            if (!(flipped_horizontally || flipped_vertically))
+                            {
+                                tile.scaleX = -1;
+                                tile.scaleY = 1;
+                                tile.rotation = -90;
+                            }
+                            else if (flipped_vertically && flipped_horizontally)
+                            {
+                                tile.scaleX = 1;
+                                tile.scaleY = -1;
+                            }
+                        }
+                        else
+                        {
+                            tile.scaleY = flipped_vertically ? -1 : 1;
+                            tile.scaleX = flipped_horizontally ? -1 : 1;
+                        }
                         tile.isVisible = true;
                     }
                     else
@@ -189,7 +219,7 @@ public class FTilemap : FContainer
         _tilesHigh = lines.GetLength(0);
 
         // set array
-        _tileArray = new int[_tilesWide * _tilesHigh];
+        _tileArray = new uint[_tilesWide * _tilesHigh];
 
         foreach (string line in lines)
         {
@@ -202,8 +232,8 @@ public class FTilemap : FContainer
                 i = 0;
                 foreach (string frame in frames)
                 {
-                    int frameNum = 0;
-                    if (int.TryParse(frame, out frameNum))
+                    uint frameNum = 0;
+                    if (uint.TryParse(frame, out frameNum))
                     {
                         // keep track of all frames
                         _tileArray[i + (j * _tilesWide)] = frameNum;
@@ -332,10 +362,17 @@ public class FTilemap : FContainer
         {
             for (int j = 0; j < clipTilesHigh; j++)
             {
-                int frame = _tileArray[i + (j * _tilesWide)];
+                uint frameWithFlag = _tileArray[i + (j * _tilesWide)];
+
+                bool flipped_horizontally = FTmxMap.FlippedHorizontally(frameWithFlag);
+                bool flipped_vertically = FTmxMap.FlippedVertically(frameWithFlag);
+                bool flipped_diagonally = FTmxMap.FlippedDiagonally(frameWithFlag);
+
+                int frame = FTmxMap.RemoveFrameFlags(frameWithFlag);
 
                 if (!_skipZero || frame > 0)
                 {
+
                     FSprite sprite;
                     if (_skipZero)
                     {
@@ -347,6 +384,30 @@ public class FTilemap : FContainer
                     {
                         sprite = _tiles[i + (j * clipTilesWide)];
                         sprite.element = Futile.atlasManager.GetElementWithName(_baseName + "_" + frame);
+                    }
+
+                    sprite.rotation = flipped_diagonally ? -90 : 0;
+                    if (flipped_diagonally)
+                    {
+
+                        sprite.scaleY = flipped_vertically ? 1 : -1;
+                        sprite.scaleX = flipped_horizontally ? -1 : 1;
+                        if (!(flipped_horizontally || flipped_vertically))
+                        {
+                            sprite.scaleX = -1;
+                            sprite.scaleY = 1;
+                            sprite.rotation = -90;
+                        }
+                        else if (flipped_horizontally && flipped_vertically)
+                        {
+                            sprite.scaleX = 1;
+                            sprite.scaleY = -1;
+                        }
+                    }
+                    else
+                    {
+                        sprite.scaleY = flipped_vertically ? -1 : 1;
+                        sprite.scaleX = flipped_horizontally ? -1 : 1;
                     }
 
                     // offset sprite coordinates
@@ -397,7 +458,7 @@ public class FTilemap : FContainer
 
     public int getFrameNum(int givenX, int givenY)
     {
-        return _tileArray[(givenX % _tilesWide) + (givenY * _tilesWide)];
+        return FTmxMap.RemoveFrameFlags(_tileArray[(givenX % _tilesWide) + (givenY * _tilesWide)]);
     }
 
     // returns FSprite at 

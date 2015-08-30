@@ -4,7 +4,11 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class FTmxMap : FContainer {
-	
+
+    public const uint FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
+    public const uint FLIPPED_VERTICALLY_FLAG = 0x40000000;
+    public const uint FLIPPED_DIAGONALLY_FLAG = 0x20000000;
+
 	private List<XMLNode> _tilesets;
 	protected List<string> _layerNames;
 	
@@ -54,7 +58,28 @@ public class FTmxMap : FContainer {
 		}
 		
 	}
-	
+
+    public static bool FlippedHorizontally(uint frameNum)
+    {
+        return (frameNum & FLIPPED_HORIZONTALLY_FLAG) != 0;
+    }
+
+    public static bool FlippedVertically(uint frameNum)
+    {
+        return (frameNum & FLIPPED_VERTICALLY_FLAG) != 0;
+    }
+
+
+    public static bool FlippedDiagonally(uint frameNum)
+    {
+        return (frameNum & FLIPPED_DIAGONALLY_FLAG) != 0;
+    }
+
+    public static int RemoveFrameFlags(uint frameWithFlags)
+    {
+        return (int)(frameWithFlags & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_DIAGONALLY_FLAG | FLIPPED_VERTICALLY_FLAG));
+    }
+
 	protected string getTilesetNameForID(int num) 
 	{
 		if (_tilesets.Count < 1) {
